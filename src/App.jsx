@@ -1,14 +1,18 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import DoctorProfile from './pages/DoctorProfile';
-import DoctorsList from './pages/DoctorsList'; // New component needed
-import AppointmentsList from './pages/AppointmentsList'; // New component needed
-import NotFound from './pages/NotFound';
-import Navbar from './components/Navbar';
+import { lazy, Suspense } from 'react';
 import axios from 'axios';
+import Navbar from './components/Navbar';
+import LoadingSpinner from './components/LoadingSpinner';
 
-// Set base URL for API requests
-axios.defaults.baseURL = 'http://localhost:5000';
+// Lazy load pages for better performance
+const Home = lazy(() => import('./pages/Home'));
+const DoctorProfile = lazy(() => import('./pages/DoctorProfile'));
+const DoctorsList = lazy(() => import('./pages/DoctorsList'));
+const AppointmentsList = lazy(() => import('./pages/AppointmentsList'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+// Set base URL for API requests - using Vite's environment variables
+axios.defaults.baseURL = import.meta.env.VITE_API_URL;
 
 function App() {
   return (
@@ -16,13 +20,15 @@ function App() {
       <div className="min-h-screen bg-gray-100">
         <Navbar />
         <main className="container mx-auto px-4 py-8">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/doctors" element={<DoctorsList />} /> {/* New route */}
-            <Route path="/doctors/:id" element={<DoctorProfile />} />
-            <Route path="/appointments" element={<AppointmentsList />} /> {/* New route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/doctors" element={<DoctorsList />} />
+              <Route path="/doctors/:id" element={<DoctorProfile />} />
+              <Route path="/appointments" element={<AppointmentsList />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </main>
       </div>
     </Router>
